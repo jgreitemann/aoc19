@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_compile_options(-fconcepts)
 
-include_directories(cmcstl2/include)
+include_directories(ranges-v3/include)
 
 file(GLOB days "day*")
 foreach(day ${days})
