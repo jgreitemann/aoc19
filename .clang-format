@@ -1,0 +1,20 @@
+﻿---
+BasedOnStyle: Google
+AccessModifierOffset: -4
+BraceWrapping:
+    AfterClass: true
+    # AfterControlStatement: Multiline # Supported in Clang 10+
+    AfterEnum: true
+    AfterStruct: true
+    AfterFunction: true
+BreakBeforeBraces: Custom
+BreakConstructorInitializers: BeforeComma
+DerivePointerAlignment: false
+IncludeBlocks: Preserve
+IndentWidth: 4
+NamespaceIndentation: None
+PointerAlignment: Middle
+TabWidth: 4
+UseTab: Never
+
+...

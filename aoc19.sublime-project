@@ -1,0 +1,53 @@
+{
+	"build_systems":
+	[
+		{
+			"file_regex": "(.+[^:]):(\\d+):(\\d+): (?:fatal )?((?:error|warning): .+)$",
+			"name": "aoc19 (Linux)",
+			"shell_cmd": "cmake --build .",
+			"syntax": "Packages/CMakeBuilder/Syntax/Ninja.sublime-syntax",
+			"variants":
+			[
+				{
+					"name": "rebuild_cache",
+					"shell_cmd": "cmake --build . --target rebuild_cache"
+				},
+				{
+					"name": "day01/rebuild_cache",
+					"shell_cmd": "cmake --build . --target day01/rebuild_cache"
+				},
+				{
+					"name": "day01/all",
+					"shell_cmd": "cmake --build . --target day01/all"
+				},
+				{
+					"name": "all",
+					"shell_cmd": "cmake --build . --target all"
+				},
+				{
+					"name": "clean",
+					"shell_cmd": "cmake --build . --target clean"
+				}
+			],
+			"working_dir": "${project_path}/build"
+		}
+	],
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"settings":
+	{
+		"ClangFormat":
+		{
+			"format_on_save": true
+		},
+		"cmake":
+		{
+			"build_folder": "${project_path}/build",
+			"generator": "Ninja"
+		}
+	}
+}
