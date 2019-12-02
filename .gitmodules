@@ -1,3 +1,6 @@
 [submodule "ranges-v3"]
 	path = ranges-v3
 	url = https://github.com/ericniebler/range-v3.git
+[submodule "cppcoro"]
+	path = cppcoro
+	url = https://github.com/lewissbaker/cppcoro.git
