@@ -1,15 +1,32 @@
+#include <range/v3/algorithm.hpp>
+#include <range/v3/iterator.hpp>
 #include <range/v3/numeric.hpp>
 #include <range/v3/view/istream.hpp>
+#include <range/v3/view/join.hpp>
 #include <range/v3/view/transform.hpp>
 
+#include <cppcoro/generator.hpp>
+
 #include <iostream>
+#include <vector>
+
+int fuel(int mass) { return std::max(0, mass / 3 - 2); }
+
+cppcoro::generator<int> rocket_fuel(int mass)
+{
+    while ((mass = fuel(mass))) co_yield mass;
+}
 
 int main()
 {
     using namespace ranges;
-    auto in = istream_view<int>{std::cin};
-    std::cout << accumulate(in | views::transform(
-                                     [](int mass) { return mass / 3 - 2; }),
-                            0)
+    using namespace std::placeholders;
+    auto sum = std::bind(accumulate, _1, 0);
+    auto const in = istream_view<int>{std::cin} | to<std::vector<int>>();
+
+    std::cout << "Part 1: " << sum(in | views::transform(fuel)) << '\n';
+
+    std::cout << "Part 2: "
+              << sum(in | views::transform(rocket_fuel) | views::transform(sum))
               << '\n';
 }
