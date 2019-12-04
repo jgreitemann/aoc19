@@ -1,18 +1,17 @@
-#include <range/v3/algorithm.hpp>
-#include <range/v3/iterator.hpp>
+#include <range/v3/experimental/utility/generator.hpp>
 #include <range/v3/numeric.hpp>
 #include <range/v3/view/istream.hpp>
 #include <range/v3/view/join.hpp>
 #include <range/v3/view/transform.hpp>
 
-#include <cppcoro/generator.hpp>
-
 #include <iostream>
 #include <vector>
 
+namespace coro_v3 = ranges::experimental;
+
 int fuel(int mass) { return std::max(0, mass / 3 - 2); }
 
-cppcoro::generator<int> rocket_fuel(int mass)
+coro_v3::generator<int> rocket_fuel(int mass)
 {
     while ((mass = fuel(mass))) co_yield mass;
 }
@@ -27,6 +26,5 @@ int main()
     std::cout << "Part 1: " << sum(in | views::transform(fuel)) << '\n';
 
     std::cout << "Part 2: "
-              << sum(in | views::transform(rocket_fuel) | views::transform(sum))
-              << '\n';
+              << sum(in | views::transform(rocket_fuel) | views::join) << '\n';
 }
