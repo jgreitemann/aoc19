@@ -7,6 +7,7 @@ BraceWrapping:
     AfterEnum: true
     AfterStruct: true
     AfterFunction: true
+BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeBraces: Custom
 BreakConstructorInitializers: BeforeComma
 DerivePointerAlignment: false

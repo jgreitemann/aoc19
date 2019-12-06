@@ -7,7 +7,6 @@ set(CMAKE_CXX_FLAGS -stdlib=libc++)
 add_compile_options(-fcoroutines-ts)
 
 include_directories(ranges-v3/include)
-include_directories(cppcoro/include)
 
 file(GLOB days "day*")
 foreach(day ${days})

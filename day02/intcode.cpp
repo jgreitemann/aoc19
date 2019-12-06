@@ -13,9 +13,9 @@ int main()
 {
     using namespace ranges;
 
-    auto memory = getlines(std::cin, ',') |
-                  views::transform([](auto str) { return std::stoi(str); }) |
-                  to<std::vector<int>>();
+    auto memory = getlines(std::cin, ',')
+                  | views::transform([](auto str) { return std::stoi(str); })
+                  | to<std::vector<int>>();
 
     auto run = [](int noun, int verb, std::vector<int> memory) {
         auto process = [&memory](auto & it) {
@@ -47,13 +47,12 @@ int main()
     std::cout << "Part 1: " << run(12, 02, memory) << '\n';
 
     auto find_inputs = [&](int desired_result) {
-        for (auto [noun, verb] : views::cartesian_product(views::iota(0, 100),
-                                                          views::iota(0, 100)) |
-                                     views::filter([&](auto pair) {
-                                         auto [noun, verb] = pair;
-                                         return run(noun, verb, memory) ==
-                                                desired_result;
-                                     }))
+        for (auto [noun, verb] :
+             views::cartesian_product(views::iota(0, 100), views::iota(0, 100))
+                 | views::filter([&](auto pair) {
+                       auto [noun, verb] = pair;
+                       return run(noun, verb, memory) == desired_result;
+                   }))
             return 100 * noun + verb;
         throw std::runtime_error(
             "could not find inputs matching desired result");
