@@ -33,6 +33,10 @@
 					"shell_cmd": "cmake --build . --target day05/rebuild_cache"
 				},
 				{
+					"name": "day06/rebuild_cache",
+					"shell_cmd": "cmake --build . --target day06/rebuild_cache"
+				},
+				{
 					"name": "day01/all",
 					"shell_cmd": "cmake --build . --target day01/all"
 				},
@@ -51,6 +55,10 @@
 				{
 					"name": "day05/all",
 					"shell_cmd": "cmake --build . --target day05/all"
+				},
+				{
+					"name": "day06/all",
+					"shell_cmd": "cmake --build . --target day06/all"
 				},
 				{
 					"name": "all",
