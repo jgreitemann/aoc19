@@ -16,12 +16,10 @@
 #include <type_traits>
 #include <utility>
 
+#include <view/pair.hpp>
+
 namespace coro_v3 = ranges::experimental;
 
-inline constexpr auto to_pair = [](auto rng) {
-    auto it = rng.begin();
-    return std::pair{*it, *(++it)};
-};
 inline constexpr auto adjacent_pairs =
     ranges::views::sliding(2) | ranges::views::transform(to_pair);
 

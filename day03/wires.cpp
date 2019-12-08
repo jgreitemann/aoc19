@@ -3,7 +3,6 @@
 #include <range/v3/action/unique.hpp>
 #include <range/v3/experimental/utility/generator.hpp>
 #include <range/v3/numeric.hpp>
-#include <range/v3/view/chunk.hpp>
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/getlines.hpp>
 #include <range/v3/view/istream.hpp>
@@ -21,14 +20,10 @@
 #include <utility>
 #include <vector>
 
+#include <view/pair.hpp>
+
 namespace coro_v3 = ranges::experimental;
 
-inline constexpr auto to_pair = [](auto rng) {
-    auto it = rng.begin();
-    return std::pair{*it, *(++it)};
-};
-inline constexpr auto as_pairs =
-    ranges::views::chunk(2) | ranges::views::transform(to_pair);
 inline constexpr auto graph = [](auto && f) {
     return ranges::views::transform(
         [f = std::forward<std::remove_reference_t<decltype(f)>>(f)](

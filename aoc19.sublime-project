@@ -84,7 +84,8 @@
 		"ecc_header_to_source_mapping":
 		[
 			"./",
-			"../src/"
+			"../src/",
+			"../../src/"
 		]
 	}
 }
