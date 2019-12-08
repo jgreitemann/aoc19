@@ -56,6 +56,26 @@ void computer::run()
                 m_os << access(0) << '\n';
                 it += 1;
                 return true;
+            case 5:
+                if (access(0))
+                    it = m_memory.begin() + access(1);
+                else
+                    it += 2;
+                return true;
+            case 6:
+                if (!access(0))
+                    it = m_memory.begin() + access(1);
+                else
+                    it += 2;
+                return true;
+            case 7:
+                access(2) = access(0) < access(1);
+                it += 3;
+                return true;
+            case 8:
+                access(2) = access(0) == access(1);
+                it += 3;
+                return true;
             case 99:
                 return false;
             default:
