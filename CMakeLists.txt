@@ -6,6 +6,7 @@ set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_FLAGS -stdlib=libc++)
 add_compile_options(-fcoroutines-ts)
 
+include_directories(include)
 include_directories(ranges-v3/include)
 
 file(GLOB days "day*")

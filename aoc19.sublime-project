@@ -72,6 +72,11 @@
 		{
 			"build_folder": "${project_path}/build",
 			"generator": "Ninja"
-		}
+		},
+		"ecc_header_to_source_mapping":
+		[
+			"./",
+			"../src/"
+		]
 	}
 }

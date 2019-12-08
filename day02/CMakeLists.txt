@@ -1,1 +1,1 @@
-add_executable(intcode intcode.cpp)
+add_executable(intcode intcode.cpp ../src/intcode_computer.cpp)
