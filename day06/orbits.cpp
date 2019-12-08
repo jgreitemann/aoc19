@@ -4,14 +4,22 @@
 #include <regex>
 #include <utility>
 
+#include <range/v3/experimental/utility/generator.hpp>
 #include <range/v3/numeric/accumulate.hpp>
 #include <range/v3/view/getlines.hpp>
 #include <range/v3/view/indirect.hpp>
 #include <range/v3/view/map.hpp>
+#include <range/v3/view/reverse.hpp>
+#include <range/v3/view/take_last.hpp>
+#include <range/v3/view/take_while.hpp>
 #include <range/v3/view/tokenize.hpp>
+#include <range/v3/view/transform.hpp>
+#include <range/v3/view/zip.hpp>
 
 #include <view/iterators.hpp>
 #include <view/pair.hpp>
+
+namespace coro_v3 = ranges::experimental;
 
 struct object;
 using graph_type = std::map<std::string, object>;
@@ -29,6 +37,11 @@ int get_depth(graph_iterator it)
         return *it->second.depth;
     else
         return *(it->second.depth = get_depth(it->second.orbiting) + 1);
+}
+
+auto orbital_path(graph_iterator it) -> coro_v3::generator<graph_iterator>
+{
+    for (; it != graph_iterator{}; it = it->second.orbiting) co_yield it;
 }
 
 int main()
@@ -60,5 +73,22 @@ int main()
                                       return *obj.depth;
                                   }),
                             0)
+              << '\n';
+
+    // find minimum number of transfer orbits
+    auto depth_proj = [](auto it) { return *it->second.depth; };
+    auto [me, my_depth] = graph["YOU"];
+    auto [santa, santas_depth] = graph["SAN"];
+    auto my_path = orbital_path(me) | to<std::vector<graph_iterator>>();
+    auto santas_path = orbital_path(santa) | to<std::vector<graph_iterator>>();
+    auto common_path =
+        views::zip(my_path | views::reverse, santas_path | views::reverse)
+        | views::take_while([](auto pair) { return pair.first == pair.second; })
+        | views::transform([](auto pair) { return std::get<0>(pair); })
+        | to<std::vector<graph_iterator>>();
+
+    std::cout << "Part 2: "
+              << *my_depth + *santas_depth
+                     - 2 * (*common_path.back()->second.depth + 1)
               << '\n';
 }
