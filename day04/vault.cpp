@@ -1,8 +1,10 @@
 #include <range/v3/algorithm/all_of.hpp>
 #include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/algorithm/count_if.hpp>
+#include <range/v3/experimental/utility/generator.hpp>
 #include <range/v3/view/filter.hpp>
 #include <range/v3/view/iota.hpp>
+#include <range/v3/view/remove_if.hpp>
 #include <range/v3/view/sliding.hpp>
 #include <range/v3/view/transform.hpp>
 
@@ -13,6 +15,8 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+
+namespace coro_v3 = ranges::experimental;
 
 inline constexpr auto to_pair = [](auto rng) {
     auto it = rng.begin();
@@ -35,6 +39,21 @@ auto count_all(Rng && rng)
     return ranges::count_if(std::forward<Rng>(rng), [](auto) { return true; });
 }
 
+template <typename Rng>
+auto multiplicities(Rng && rng) -> coro_v3::generator<std::size_t>
+{
+    using T = typename std::remove_reference_t<Rng>::value_type;
+    std::size_t streak = 0;
+    for (auto const & [a, b] : rng | adjacent_pairs) {
+        ++streak;
+        if (a != b) {
+            co_yield streak;
+            streak = 0;
+        }
+    }
+    co_yield ++streak;
+}
+
 int main(int argc, const char * argv[])
 {
     using namespace ranges;
@@ -51,9 +70,14 @@ int main(int argc, const char * argv[])
                             pair_compare(std::less_equal<>{}));
           })
         | views::filter([](std::string const & str) {
-              return any_of(str | adjacent_pairs,
-                            pair_compare(std::equal_to<>{}));
+              return any_of(multiplicities(str),
+                            [](size_t m) { return m >= 2; });
           });
-
     std::cout << "Part 1: " << count_all(codes) << '\n';
+
+    auto excl_codes =
+        codes | views::filter([](std::string const & str) {
+            return any_of(multiplicities(str), [](size_t m) { return m == 2; });
+        });
+    std::cout << "Part 2: " << count_all(excl_codes) << '\n';
 }
