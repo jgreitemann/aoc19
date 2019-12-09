@@ -20,20 +20,10 @@
 #include <utility>
 #include <vector>
 
+#include <view/graph.hpp>
 #include <view/pair.hpp>
 
 namespace coro_v3 = ranges::experimental;
-
-inline constexpr auto graph = [](auto && f) {
-    return ranges::views::transform(
-        [f = std::forward<std::remove_reference_t<decltype(f)>>(f)](
-            auto && val) {
-            auto && res = f(val);
-            return std::pair{
-                std::forward<std::remove_reference_t<decltype(val)>>(val),
-                std::forward<std::remove_reference_t<decltype(res)>>(res)};
-        });
-};
 
 using point_t = std::pair<int, int>;
 inline constexpr point_t origin{0, 0};
