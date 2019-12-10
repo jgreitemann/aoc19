@@ -48,7 +48,7 @@ void computer::run()
                 it += 3;
                 return true;
             case 3:
-                std::cerr << "Input: ";
+                if (&m_is == &std::cin) std::cerr << "Input: ";
                 m_is >> access(0);
                 it += 1;
                 return true;
