@@ -6,9 +6,10 @@
 
 #include <utility>
 
-inline constexpr auto to_pair = [](auto rng) {
+inline constexpr auto to_pair = [](auto && rng) {
     auto it = rng.begin();
-    return std::pair{*it, *(++it)};
+    using T = decltype(*it);
+    return std::pair<T, T>{*it, *(++it)};
 };
 inline constexpr auto as_pairs =
     ranges::views::chunk(2) | ranges::views::transform(to_pair);
