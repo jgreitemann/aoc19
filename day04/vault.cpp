@@ -5,7 +5,6 @@
 #include <range/v3/view/filter.hpp>
 #include <range/v3/view/iota.hpp>
 #include <range/v3/view/remove_if.hpp>
-#include <range/v3/view/sliding.hpp>
 #include <range/v3/view/transform.hpp>
 
 #include <cstdlib>
@@ -19,9 +18,6 @@
 #include <view/pair.hpp>
 
 namespace coro_v3 = ranges::experimental;
-
-inline constexpr auto adjacent_pairs =
-    ranges::views::sliding(2) | ranges::views::transform(to_pair);
 
 template <typename Compare>
 auto pair_compare(Compare && compare)
