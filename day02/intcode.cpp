@@ -17,7 +17,7 @@ int main()
 
     intcode::computer comp(intcode::istream_construct, std::cin);
 
-    auto eval = [](int noun, int verb, intcode::computer comp) {
+    auto eval = [](int noun, int verb, intcode::computer<> comp) {
         comp.memory()[1] = noun;
         comp.memory()[2] = verb;
         comp.run();
