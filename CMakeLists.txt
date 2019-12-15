@@ -6,6 +6,8 @@ set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_FLAGS -stdlib=libc++)
 add_compile_options(-fcoroutines-ts)
 
+add_compile_options(-Wall -Wextra -pedantic)
+
 find_package(Threads)
 
 include_directories(include)
