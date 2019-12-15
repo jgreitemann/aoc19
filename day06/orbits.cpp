@@ -28,7 +28,7 @@ using graph_iterator = typename graph_type::iterator;
 struct object
 {
     graph_iterator orbiting;
-    std::optional<int> depth;
+    std::optional<int> depth = std::nullopt;
 };
 
 int get_depth(graph_iterator it)
@@ -76,7 +76,6 @@ int main()
               << '\n';
 
     // find minimum number of transfer orbits
-    auto depth_proj = [](auto it) { return *it->second.depth; };
     auto [me, my_depth] = graph["YOU"];
     auto [santa, santas_depth] = graph["SAN"];
     auto my_path = orbital_path(me) | to<std::vector<graph_iterator>>();

@@ -36,7 +36,6 @@ auto count_all(Rng && rng)
 template <typename Rng>
 auto multiplicities(Rng && rng) -> coro_v3::generator<std::size_t>
 {
-    using T = typename std::remove_reference_t<Rng>::value_type;
     std::size_t streak = 0;
     for (auto const & [a, b] : rng | adjacent_pairs) {
         ++streak;
