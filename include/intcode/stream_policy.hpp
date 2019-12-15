@@ -4,17 +4,18 @@
 
 namespace intcode::io_policy {
 
+template <typename Int>
 struct stream_policy
 {
     stream_policy(std::istream & is = std::cin, std::ostream & os = std::cout)
         : m_is(is), m_os(os)
     {
     }
-    void write(int value) const { m_os << value << '\n'; }
-    int read() const
+    void write(Int value) const { m_os << value << '\n'; }
+    Int read() const
     {
         if (&m_is == &std::cin) std::cerr << "Input: ";
-        int res;
+        Int res;
         m_is >> res;
         return res;
     }

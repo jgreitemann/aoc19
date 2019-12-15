@@ -34,7 +34,7 @@ int main(int argc, const char * argv[])
     auto controller_factory = [&](auto policy_type, auto &&... args) {
         if (argc != 2) throw std::runtime_error("invalid CL argument");
         std::ifstream ifs{argv[1]};
-        return intcode::computer<typename decltype(policy_type)::type>(
+        return intcode::computer<int, typename decltype(policy_type)::type>(
             intcode::istream_construct, ifs,
             std::forward<decltype(args)>(args)...);
     };
@@ -42,7 +42,7 @@ int main(int argc, const char * argv[])
     constexpr int N_amp = 5;
     using result_pair_t = std::pair<std::vector<int>, int>;
     auto res = permutations(views::iota(0, N_amp)) | graph([&](auto perm) {
-                   type_identity<intcode::io_policy::stream_policy> pol{};
+                   type_identity<intcode::io_policy::stream_policy<int>> pol{};
                    std::array<std::stringstream, N_amp + 1> sss;
                    for (auto && [ss, phase_set] : views::zip(sss, perm))
                        ss << phase_set << ' ';
@@ -61,7 +61,8 @@ int main(int argc, const char * argv[])
 
     res =
         permutations(views::iota(N_amp, 2 * N_amp)) | graph([&](auto perm) {
-            using cv_policy = intcode::io_policy::condition_variable_policy;
+            using cv_policy =
+                intcode::io_policy::condition_variable_policy<int>;
             type_identity<cv_policy> pol{};
             using channel_t = cv_policy::channel_type;
             std::array<channel_t, N_amp + 1> chs{};

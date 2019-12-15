@@ -5,11 +5,12 @@
 
 namespace intcode::io_policy {
 
+template <typename Int>
 struct condition_variable_policy
 {
     struct channel_type
     {
-        void write(int val)
+        void write(Int val)
         {
             {
                 std::unique_lock lock{mutex};
@@ -19,9 +20,9 @@ struct condition_variable_policy
             }
             cv.notify_all();
         }
-        int read()
+        Int read()
         {
-            int res = [&] {
+            Int res = [&] {
                 std::unique_lock lock{mutex};
                 cv.wait(lock, [this] { return active; });
                 active = false;
@@ -32,7 +33,7 @@ struct condition_variable_policy
         }
 
     private:
-        int value;
+        Int value;
         bool active = false;
         std::mutex mutex;
         std::condition_variable cv;
@@ -43,8 +44,8 @@ struct condition_variable_policy
         : m_in(in_channel), m_out(out_channel)
     {
     }
-    void write(int value) const { m_out.write(value); }
-    int read() const { return m_in.read(); }
+    void write(Int value) const { m_out.write(value); }
+    Int read() const { return m_in.read(); }
 
 private:
     channel_type & m_in;

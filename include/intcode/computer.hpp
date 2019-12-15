@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -17,10 +18,10 @@ struct istream_construct_t
 };
 inline constexpr istream_construct_t istream_construct;
 
-template <typename IOPolicy = io_policy::stream_policy>
+template <typename Int = int, typename IOPolicy = io_policy::stream_policy<Int>>
 struct computer : private IOPolicy
 {
-    using memory_type = std::vector<int>;
+    using memory_type = std::vector<Int>;
 
     template <typename... Args>
     computer(memory_type && memory, Args &&... args)
@@ -31,8 +32,12 @@ struct computer : private IOPolicy
     template <typename... Args>
     computer(istream_construct_t, std::istream & mem_is, Args &&... args)
         : computer(ranges::getlines(mem_is, ',')
-                       | ranges::views::transform(
-                           [](auto const & str) { return std::stoi(str); })
+                       | ranges::views::transform([](auto const & str) {
+                             std::stringstream ss{str};
+                             Int res;
+                             ss >> res;
+                             return res;
+                         })
                        | ranges::to<memory_type>(),
                    std::forward<Args>(args)...)
     {
@@ -41,16 +46,16 @@ struct computer : private IOPolicy
     void run()
     {
         auto process = [&](auto & it) {
-            int opcode = *(it++);
+            Int opcode = *(it++);
             char buf[7];
-            sprintf(buf, "%.6i", opcode);
-            auto access = [&](int x) -> int & {
+            sprintf(buf, "%.6i", static_cast<int>(opcode));
+            auto access = [&](std::ptrdiff_t x) -> Int & {
                 if (buf[3 - x] == '0')  // position mode
-                    return m_memory[it[x]];
+                    return m_memory[static_cast<std::ptrdiff_t>(it[x])];
                 else  // immediate mode
                     return it[x];
             };
-            switch (opcode % 100) {
+            switch (static_cast<int>(opcode % 100)) {
                 case 1:
                     access(2) = access(0) + access(1);
                     it += 3;
@@ -69,13 +74,15 @@ struct computer : private IOPolicy
                     return true;
                 case 5:
                     if (access(0))
-                        it = m_memory.begin() + access(1);
+                        it = m_memory.begin()
+                             + static_cast<std::ptrdiff_t>(access(1));
                     else
                         it += 2;
                     return true;
                 case 6:
                     if (!access(0))
-                        it = m_memory.begin() + access(1);
+                        it = m_memory.begin()
+                             + static_cast<std::ptrdiff_t>(access(1));
                     else
                         it += 2;
                     return true;
@@ -90,8 +97,9 @@ struct computer : private IOPolicy
                 case 99:
                     return false;
                 default:
-                    throw std::runtime_error("invalid opcode: "
-                                             + std::to_string(opcode % 100));
+                    throw std::runtime_error(
+                        "invalid opcode: "
+                        + std::to_string(static_cast<int>(opcode % 100)));
                     return false;
             }
         };
