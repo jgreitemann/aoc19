@@ -1,5 +1,7 @@
 #pragma once
+#include <condition_variable>
 #include <iostream>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -21,6 +23,29 @@ struct stream_policy
 private:
     std::istream & m_is;
     std::ostream & m_os;
+};
+
+struct condition_variable_policy
+{
+    struct channel_type
+    {
+        void write(int val);
+        int read();
+
+    private:
+        int value;
+        bool active = false;
+        std::mutex mutex;
+        std::condition_variable cv;
+    };
+    condition_variable_policy(channel_type & in_channel,
+                              channel_type & out_channel);
+    void write(int value) const { m_out.write(value); }
+    int read() const { return m_in.read(); }
+
+private:
+    channel_type & m_in;
+    channel_type & m_out;
 };
 
 }  // namespace io_policy

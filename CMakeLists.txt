@@ -1,10 +1,12 @@
 cmake_minimum_required(VERSION 3.8)
-project(aoc19 CXX)
+project(aoc19 C CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_FLAGS -stdlib=libc++)
 add_compile_options(-fcoroutines-ts)
+
+find_package(Threads)
 
 include_directories(include)
 include_directories(ranges-v3/include)

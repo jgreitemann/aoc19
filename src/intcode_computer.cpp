@@ -18,3 +18,32 @@ int stream_policy::read() const
     m_is >> res;
     return res;
 }
+
+condition_variable_policy::condition_variable_policy(channel_type & in_channel,
+                                                     channel_type & out_channel)
+    : m_in(in_channel), m_out(out_channel)
+{
+}
+
+void condition_variable_policy::channel_type::write(int val)
+{
+    {
+        std::unique_lock lock{mutex};
+        cv.wait(lock, [this] { return !active; });
+        value = val;
+        active = true;
+    }
+    cv.notify_all();
+}
+
+int condition_variable_policy::channel_type::read()
+{
+    int res = [&] {
+        std::unique_lock lock{mutex};
+        cv.wait(lock, [this] { return active; });
+        active = false;
+        return value;
+    }();
+    cv.notify_all();
+    return res;
+}
