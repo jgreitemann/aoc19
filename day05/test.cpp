@@ -1,7 +1,7 @@
 #include <fstream>
 #include <stdexcept>
 
-#include <intcode_computer.hpp>
+#include <intcode/computer.hpp>
 
 int main(int argc, const char * argv[])
 {

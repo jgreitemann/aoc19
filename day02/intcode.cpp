@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#include <intcode_computer.hpp>
+#include <intcode/computer.hpp>
 
 int main()
 {

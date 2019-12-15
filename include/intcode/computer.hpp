@@ -1,7 +1,5 @@
 #pragma once
-#include <condition_variable>
 #include <iostream>
-#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -10,45 +8,9 @@
 #include <range/v3/view/getlines.hpp>
 #include <range/v3/view/transform.hpp>
 
+#include <intcode/stream_policy.hpp>
+
 namespace intcode {
-
-namespace io_policy {
-
-struct stream_policy
-{
-    stream_policy(std::istream & is = std::cin, std::ostream & os = std::cout);
-    void write(int value) const;
-    int read() const;
-
-private:
-    std::istream & m_is;
-    std::ostream & m_os;
-};
-
-struct condition_variable_policy
-{
-    struct channel_type
-    {
-        void write(int val);
-        int read();
-
-    private:
-        int value;
-        bool active = false;
-        std::mutex mutex;
-        std::condition_variable cv;
-    };
-    condition_variable_policy(channel_type & in_channel,
-                              channel_type & out_channel);
-    void write(int value) const { m_out.write(value); }
-    int read() const { return m_in.read(); }
-
-private:
-    channel_type & m_in;
-    channel_type & m_out;
-};
-
-}  // namespace io_policy
 
 struct istream_construct_t
 {

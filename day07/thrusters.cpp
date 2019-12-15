@@ -14,7 +14,8 @@
 #include <range/v3/view/map.hpp>
 #include <range/v3/view/zip.hpp>
 
-#include <intcode_computer.hpp>
+#include <intcode/computer.hpp>
+#include <intcode/condition_variable_policy.hpp>
 #include <view/combinatorics.hpp>
 #include <view/graph.hpp>
 #include <view/pair.hpp>
