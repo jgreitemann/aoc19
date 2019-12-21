@@ -1,4 +1,6 @@
 #include <array>
+#include <cmath>
+#include <complex>
 #include <functional>
 #include <iostream>
 #include <numeric>
@@ -7,23 +9,31 @@
 #include <utility>
 #include <vector>
 
+#include <range/v3/action/sort.hpp>
+#include <range/v3/action/stable_sort.hpp>
 #include <range/v3/algorithm/all_of.hpp>
 #include <range/v3/algorithm/max_element.hpp>
 #include <range/v3/view/any_view.hpp>
 #include <range/v3/view/cartesian_product.hpp>
 #include <range/v3/view/cycle.hpp>
+#include <range/v3/view/drop.hpp>
+#include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/filter.hpp>
 #include <range/v3/view/getlines.hpp>
+#include <range/v3/view/group_by.hpp>
 #include <range/v3/view/iota.hpp>
 #include <range/v3/view/join.hpp>
 #include <range/v3/view/map.hpp>
+#include <range/v3/view/remove.hpp>
 #include <range/v3/view/reverse.hpp>
 #include <range/v3/view/single.hpp>
 #include <range/v3/view/stride.hpp>
+#include <range/v3/view/take.hpp>
 #include <range/v3/view/transform.hpp>
 #include <range/v3/view/zip.hpp>
 
 #include <view/pair.hpp>
+#include <view/transpose.hpp>
 
 int main()
 {
@@ -35,11 +45,11 @@ int main()
     const int height = lines.size();
 
     auto coords = views::zip(lines | views::join,
-                             views::cartesian_product(views::ints(0, width),
-                                                      views::ints(0, height))
+                             views::cartesian_product(views::ints(0, height),
+                                                      views::ints(0, width))
                                  | views::transform([](auto && p) {
-                                       auto [x, y] = p;
-                                       return point_t{y, x};
+                                       auto [y, x] = p;
+                                       return point_t{x, y};
                                    }))
                   | views::filter([](auto && p) { return p.first == '#'; })
                   | views::values | to<std::set<point_t>>();
@@ -90,4 +100,37 @@ int main()
     std::cout << "Part 1:\n\tBest location: (" << best_location[0] << ", "
               << best_location[1] << ")\n\t# Asteroids with line of sight: "
               << los_mset.count(best_location) << '\n';
+
+    auto distance = [best_location](point_t p) {
+        p[0] -= best_location[0];
+        p[1] -= best_location[1];
+        return std::abs(p[0]) + std::abs(p[1]);
+    };
+
+    auto angle = [best_location](point_t p) {
+        p[0] -= best_location[0];
+        p[1] -= best_location[1];
+        std::complex<double> c(p[1], -p[0] - 1e-9);
+        return arg(c);
+    };
+
+    auto angle_approx_equiv = [angle](point_t lhs, point_t rhs) {
+        return std::abs(angle(lhs) - angle(rhs)) < 1e-8;
+    };
+    auto approx_less = [](double a, double b) {
+        return a < b && std::abs(a - b) > 1e-6;
+    };
+
+    auto coords_vec =
+        coords | views::remove(best_location) | to<std::vector<point_t>>();
+
+    coords_vec |= actions::sort(std::less<>{}, distance)
+                  | actions::stable_sort(approx_less, angle);
+    auto angle_groups = coords_vec | views::group_by(angle_approx_equiv)
+                        | to<std::vector<std::vector<point_t>>>();
+
+    std::cout << "Part 2:\n...\n";
+    for (auto [i, p] : transpose(angle_groups) | views::join | views::enumerate
+                           | views::drop(195) | views::take(5))
+        std::cout << i + 1 << ": (" << p[0] << ", " << p[1] << ")\n";
 }
