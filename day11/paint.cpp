@@ -4,15 +4,21 @@
 #include <thread>
 #include <utility>
 
+#include <range/v3/algorithm/minmax.hpp>
+#include <range/v3/view/filter.hpp>
+#include <range/v3/view/map.hpp>
+#include <range/v3/view/reverse.hpp>
+#include <range/v3/view/transform.hpp>
+
 #include <intcode/computer.hpp>
 #include <intcode/condition_variable_policy.hpp>
 
-int main()
+int main(int argc, const char * argv[])
 {
     using namespace ranges;
-    using cv_policy = intcode::io_policy::condition_variable_policy<int>;
+    using cv_policy = intcode::io_policy::condition_variable_policy<long>;
     using channel_t = cv_policy::channel_type;
-    using robot_t = intcode::computer<int, cv_policy>;
+    using robot_t = intcode::computer<long, cv_policy>;
     using pos_t = std::pair<int, int>;
 
     struct panel_t
@@ -23,6 +29,7 @@ int main()
 
     std::map<pos_t, panel_t> hull;
     pos_t pos = {0, 0};
+    hull[pos] = {0, (argc >= 2) ? std::atoi(argv[1]) : 0};
     int orientation = 0;
 
     channel_t in_channel, out_channel;
@@ -79,4 +86,20 @@ int main()
     if (robo_thread.joinable()) robo_thread.join();
 
     std::cout << "Part 1: " << hull.size() << " panels painted\n";
+
+    auto [min_x, max_x] = minmax(
+        hull | views::transform([](auto const & p) { return p.first.first; }));
+    auto [min_y, max_y] = minmax(
+        hull | views::transform([](auto const & p) { return p.first.second; }));
+
+    std::vector<std::string> lines(max_y - min_y + 1,
+                                   std::string(max_x - min_x + 1, ' '));
+    for (auto [x, y] : hull | views::filter([](auto && p) {
+                           return p.second.color;
+                       }) | views::keys) {
+        lines[y - min_y][x - min_x] = '#';
+    }
+
+    std::cout << "Part 2:\n\n";
+    for (auto const & line : lines | views::reverse) std::cout << line << '\n';
 }
