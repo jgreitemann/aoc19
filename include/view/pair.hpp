@@ -25,7 +25,7 @@ template <typename Rng, typename T = std::reference_wrapper<
 auto pairs_gen(Rng && rng) -> ranges::experimental::generator<std::pair<T, T>>
 {
     for (auto it1 = begin(rng); it1 != end(rng); ++it1)
-        for (auto it2 = next(it1); it2 != end(rng); ++it2)
+        for (auto it2 = std::next(it1); it2 != end(rng); ++it2)
             co_yield std::pair<T, T>{*it1, *it2};
 }
 
