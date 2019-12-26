@@ -45,52 +45,16 @@ struct moon_t
     }
 };
 
-using config_t = std::array<moon_t, 4>;
+using config_t = std::vector<moon_t>;
 
-template <size_t... I>
-bool config_cmp_impl(config_t const & lhs, config_t const & rhs,
-                     std::index_sequence<I...>)
+int main(int argc, const char * argv[])
 {
-    return (... && (lhs[I] == rhs[I]));
-}
-
-bool operator==(config_t const & lhs, config_t const & rhs)
-{
-    return config_cmp_impl(lhs, rhs, std::make_index_sequence<4>{});
-}
-
-namespace std {
-template <>
-struct hash<moon_t>
-{
-    std::size_t operator()(moon_t const & m) const
-    {
-        std::hash<int> hasher{};
-        std::size_t h = std::hash<int>{}(m.pos[0]);
-        h = (h + (324723947 + hasher(m.pos[1]))) ^ 93485734985;
-        h = (h + (324723947 + hasher(m.pos[2]))) ^ 93485734985;
-        h = (h + (324723947 + hasher(m.vel[0]))) ^ 93485734985;
-        h = (h + (324723947 + hasher(m.vel[1]))) ^ 93485734985;
-        h = (h + (324723947 + hasher(m.vel[2]))) ^ 93485734985;
-        return h;
+    if (argc != 2) {
+        std::cerr << "usage: " << argv[0] << " <N_steps>\n";
+        return 1;
     }
-};
-template <>
-struct hash<config_t>
-{
-    std::size_t operator()(config_t const & c) const
-    {
-        std::hash<moon_t> hasher{};
-        std::size_t h = 0;
-        for (auto const & m : c)
-            h = (h + (324723947 + hasher(m))) ^ 93485734985;
-        return h;
-    }
-};
-}  // namespace std
+    std::size_t N_steps = std::atol(argv[1]);
 
-int main()
-{
     using namespace ranges;
     auto moons =
         getlines(std::cin) | views::transform([](std::string const & line) {
@@ -105,12 +69,7 @@ int main()
         | views::transform([](auto && vec) {
               return moon_t{{vec[0], vec[1], vec[2]}, {}};
           })
-        | to<std::vector<moon_t>>();
-
-    if (moons.size() != 4)
-        throw std::runtime_error("Input of four moons required!");
-    config_t conf;
-    copy(moons, conf.begin());
+        | to<config_t>();
 
     auto evolve = [](auto & moons) {
         // apply gravity
@@ -129,28 +88,28 @@ int main()
             for (auto && [p, v] : views::zip(a.pos, a.vel)) p += v;
     };
 
-    constexpr int N_steps = 1000;
-    for (int step : views::ints(0, N_steps)) {
+    for (size_t step : views::ints(1ul, N_steps + 1)) {
+        evolve(moons);
         if (step % (N_steps / 10) == 0) {
             std::cout << "\nAfter " << step << " steps:\n";
             for (auto const & m : moons) std::cout << m << '\n';
         }
-        evolve(moons);
     }
 
     std::cout << "\nPart 1: Total energy in the system: "
               << accumulate(moons, 0, std::plus<>{}, &moon_t::total_energy)
               << '\n';
 
-    std::unordered_set<config_t> configs;
-    for (unsigned long step : views::iota(0ul)) {
-        if (step % 100000 == 0) std::cout << "step " << step << '\n';
-        auto [it, not_recurrent] = configs.insert(conf);
-        if (!not_recurrent) {
-            std::cout << "Part 2: Found recurrent configuration after " << step
+    config_t target_config = moons;
+
+    for (size_t step : views::iota(N_steps + 1)) {
+        if (step % 1000000000 == 0) std::cout << step << " steps...\n";
+        evolve(moons);
+        if (moons == target_config) {
+            std::cout << "\n Part 2: Target configuration recurred at step "
+                      << step << ", i.e. after a period of " << step - N_steps
                       << " steps.\n";
             break;
         }
-        evolve(conf);
     }
 }
