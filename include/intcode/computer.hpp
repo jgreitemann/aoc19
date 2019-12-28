@@ -43,7 +43,8 @@ struct computer : private IOPolicy
     {
     }
 
-    void run()
+    template <typename ContinuationCallback>
+    void run(ContinuationCallback && cont_cb = [] { return true; })
     {
         std::size_t rb = 0;
         auto process = [&](auto & it) {
@@ -142,7 +143,7 @@ struct computer : private IOPolicy
                     return false;
             }
         };
-        for (auto ip = m_memory.begin(); process(ip);) {
+        for (auto ip = m_memory.begin(); process(ip) && cont_cb();) {
         }
     }
 
