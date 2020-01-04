@@ -15,6 +15,7 @@
 #include <range/v3/view/filter.hpp>
 #include <range/v3/view/iota.hpp>
 #include <range/v3/view/map.hpp>
+#include <range/v3/view/remove_if.hpp>
 #include <range/v3/view/reverse.hpp>
 #include <range/v3/view/transform.hpp>
 
@@ -51,10 +52,14 @@ int main()
 
     auto print_map = [&](auto path = std::deque<pos_t>{}) {
         std::cout << "--------------------------------\n";
+        auto known_coords = map | views::remove_if([](auto const & p) {
+                                return p.second == Tile::Unknown;
+                            })
+                            | views::keys;
         auto [min_x, max_x] = minmax(
-            map | views::keys | views::transform([](pos_t p) { return p[0]; }));
+            known_coords | views::transform([](pos_t p) { return p[0]; }));
         auto [min_y, max_y] = minmax(
-            map | views::keys | views::transform([](pos_t p) { return p[1]; }));
+            known_coords | views::transform([](pos_t p) { return p[1]; }));
         for (int y : views::iota(min_y, max_y + 1)) {
             for (int x : views::iota(min_x, max_x + 1)) {
                 if (pos_t{x, y} == pos_t{0, 0}) {
@@ -123,7 +128,7 @@ int main()
                        std::move(write_cb), std::move(read_cb));
     }();
 
-    auto droid_init_mem = droid.memory();
+    auto const droid_init_mem = droid.memory();
     droid.run([&terminate] { return !terminate; });
 
     pos_t oxygen_pos = droid_pos;
@@ -131,16 +136,10 @@ int main()
     std::cout << "Oxygen System found at " << oxygen_pos[0] << ", "
               << oxygen_pos[1] << '\n';
 
-    // find the shortest path
-    while (true) {
-        // shortest path given current information
-        auto path = shortest_path({0, 0}, oxygen_pos, [&map](pos_t p) {
-            return map[p] != Tile::Wall;
-        });
-
-        // check the path for unknown walls
-        terminate = false;
-        droid_pos = {0, 0};
+    auto check_path = [&map, surroundings,
+                       droid_init_mem](auto && path) -> bool {
+        bool terminate = false;
+        pos_t droid_pos = {0, 0};
         auto path_it = path.begin();
         auto check_droid = [&] {
             auto write_cb = [&](long status) {
@@ -168,12 +167,22 @@ int main()
                            std::move(write_cb), std::move(read_cb));
         }();
         check_droid.run([&] { return !terminate; });
+        return droid_pos == path.back();
+    };
 
-        if (droid_pos == oxygen_pos) {
-            print_map(path);
-            std::cout << "Part 1: Shortest path requires " << path.size() - 1
-                      << " movement commands.\n";
-            break;
+    /* Part 1 */ {
+        auto get_shortest_path = [&] {
+            return shortest_path({0, 0}, oxygen_pos, [&map](pos_t p) {
+                return map[p] != Tile::Wall;
+            });
+        };
+        auto path = get_shortest_path();
+        while (!check_path(path)) {
+            path = get_shortest_path();
         }
+
+        print_map(path);
+        std::cout << "Part 1: Shortest path requires " << path.size() - 1
+                  << " movement commands.\n";
     }
 }
