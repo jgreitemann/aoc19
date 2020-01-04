@@ -50,7 +50,7 @@ int main()
             lookup(3, {loc[0] - 1, loc[1]}), lookup(4, {loc[0] + 1, loc[1]})};
     };
 
-    auto print_map = [&](auto path = std::deque<pos_t>{}) {
+    auto print_map = [&](std::deque<pos_t> path = std::deque<pos_t>{}) {
         std::cout << "--------------------------------\n";
         auto known_coords = map | views::remove_if([](auto const & p) {
                                 return p.second == Tile::Unknown;
@@ -144,15 +144,15 @@ int main()
         auto check_droid = [&] {
             auto write_cb = [&](long status) {
                 Tile status_tile = static_cast<Tile>(status + 1);
+                map[*path_it] = status_tile;
                 if (status_tile == Tile::Wall) {
                     std::cout
                         << "Hit a previously unknown wall at: " << (*path_it)[0]
                         << ", " << (*path_it)[1] << '\n';
-                    map[*path_it] = Tile::Wall;
                 } else {
                     droid_pos = *path_it;
                 }
-                terminate = (status_tile != Tile::Empty);
+                terminate = (status_tile == Tile::Wall || path_it == end(path));
             };
             auto read_cb = [&]() -> long {
                 auto next = *(++path_it);
@@ -170,19 +170,38 @@ int main()
         return droid_pos == path.back();
     };
 
+    auto const not_a_wall = [&map](pos_t p) { return map[p] != Tile::Wall; };
+    auto const is_unknown = [&map](pos_t p) { return map[p] == Tile::Unknown; };
+
     /* Part 1 */ {
-        auto get_shortest_path = [&] {
-            return shortest_path({0, 0}, oxygen_pos, [&map](pos_t p) {
-                return map[p] != Tile::Wall;
-            });
-        };
-        auto path = get_shortest_path();
+        auto path = shortest_path({0, 0}, oxygen_pos, not_a_wall);
         while (!check_path(path)) {
-            path = get_shortest_path();
+            path = shortest_path({0, 0}, oxygen_pos, not_a_wall);
         }
 
         print_map(path);
-        std::cout << "Part 1: Shortest path requires " << path.size() - 1
+        std::cout << "\nPart 1: Shortest path requires " << path.size() - 1
                   << " movement commands.\n";
+    }
+
+    /* Part 2 */ {
+        int minutes = -1;
+
+        while (minutes == -1) {
+            for (auto && wave : waves(oxygen_pos, not_a_wall)) {
+                ++minutes;
+                for (auto unknown_point : wave | views::filter(is_unknown)) {
+                    if (!check_path(
+                            shortest_path({0, 0}, unknown_point, not_a_wall)))
+                        minutes = -1;
+                }
+                if (minutes == -1) break;
+            }
+        }
+        --minutes;
+
+        print_map({});
+        std::cout << "\nPart 2: Chamber filled with oxygen after " << minutes
+                  << " minutes.\n";
     }
 }

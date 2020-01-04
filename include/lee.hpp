@@ -2,10 +2,12 @@
 #include <array>
 #include <deque>
 #include <map>
+#include <set>
 #include <tuple>
 #include <utility>
 
 #include <range/v3/algorithm/find_if.hpp>
+#include <range/v3/experimental/utility/generator.hpp>
 #include <range/v3/view/cache1.hpp>
 #include <range/v3/view/join.hpp>
 #include <range/v3/view/map.hpp>
@@ -32,50 +34,63 @@ auto neighbors(Point const & p)
     return neighbors_impl(p, Indices{});
 }
 
-template <typename Point, typename Predicate,
-          typename Map = std::map<Point, int>>
+template <typename Point, typename Predicate>
+auto waves(Point center, Predicate && pred)
+    -> ranges::experimental::generator<std::set<Point>>
+{
+    using namespace ranges;
+    using Set = std::set<Point>;
+
+    enum class WaveStatus
+    {
+        Rolling,
+        Ebbed
+    };
+
+    Set last_wave;
+    Set this_wave{center};
+    Set next_wave;
+    co_yield this_wave;
+
+    WaveStatus wave_status = WaveStatus::Rolling;
+    while (wave_status == WaveStatus::Rolling) {
+        wave_status = WaveStatus::Ebbed;
+        for (Point n : this_wave | views::transform([](Point const & p) {
+                           return neighbors(p);
+                       }) | views::cache1
+                           | views::join) {
+            if (!pred(n)) continue;
+            if (find(last_wave, n) == end(last_wave)) {
+                next_wave.insert(n);
+                wave_status = WaveStatus::Rolling;
+            }
+        }
+        last_wave = std::move(this_wave);
+        this_wave = std::move(next_wave);
+        next_wave.clear();
+        co_yield this_wave;
+    }
+}
+
+template <typename Point, typename Predicate>
 std::deque<Point> shortest_path(Point start, Point target, Predicate && pred)
 {
     using namespace ranges;
+    using Map = std::map<Point, int>;
 
     Map distances;
-    distances[start] = 1;
 
-    /* wave expansion */ {
-        Map last_wave, this_wave;
-        last_wave[start] = 1;
-
-        enum class WaveStatus
-        {
-            Rolling,
-            Ebbed,
-            TargetReached
-        };
-
-        WaveStatus wave_status = WaveStatus::Rolling;
-        for (int n_wave = 2; wave_status == WaveStatus::Rolling; ++n_wave) {
-            wave_status = WaveStatus::Ebbed;
-            for (Point n : last_wave | views::keys
-                               | views::transform(
-                                   [](Point const & p) { return neighbors(p); })
-                               | views::cache1 | views::join) {
-                if (!pred(n)) continue;
-                auto [it, inserted] = distances.emplace(n, n_wave);
-                if (inserted) {
-                    this_wave.emplace(n, n_wave);
-                    if (n == target) {
-                        wave_status = WaveStatus::TargetReached;
-                        break;
-                    } else {
-                        wave_status = WaveStatus::Rolling;
-                    }
-                }
+    auto ebbed = [&] {
+        for (auto && [n_wave, wave] : waves(start, pred) | views::enumerate) {
+            for (auto p : wave) {
+                distances.emplace(p, n_wave + 1);
+                if (p == target) return false;
             }
-            last_wave = std::move(this_wave);
-            this_wave.clear();
         }
-        if (wave_status == WaveStatus::Ebbed) return {};
-    }
+        return true;
+    }();
+
+    if (ebbed) return {};
 
     /* backtracking */
     std::deque<Point> path{target};
